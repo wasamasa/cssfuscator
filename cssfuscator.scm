@@ -15,20 +15,23 @@
         (format #f "~dpx ~dpx #~2,'0x~2,'0x~2,'0x" x y r g b)
         #f)))
 
+(define (image->string image width height)
+  (let y-loop ((y 0) (acc '()))
+    (if (< y height)
+        (let x-loop ((x 0) (acc acc))
+          (if (< x width)
+              (let ((hex-code (hex-code-at image x y)))
+                (if hex-code
+                    (x-loop (add1 x) (cons hex-code acc))
+                    (x-loop (add1 x) acc)))
+              (y-loop (add1 y) acc)))
+        (string-intersperse (reverse acc) ","))))
+
 (define (transform image-path)
   (let* ((image (image-load image-path))
          (width (image-width image))
          (height (image-height image))
-         (data (let y-loop ((y 0) (acc '()))
-                 (if (< y height)
-                     (let x-loop ((x 0) (acc acc))
-                       (if (< x width)
-                           (let ((hex-code (hex-code-at image x y)))
-                             (if hex-code
-                                 (x-loop (add1 x) (cons hex-code acc))
-                                 (x-loop (add1 x) acc)))
-                           (y-loop (add1 y) acc)))
-                     (string-intersperse (reverse acc) ",")))))
+         (data (image->string image width height)))
     (image-destroy image)
     data))
 
