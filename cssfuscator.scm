@@ -1,14 +1,9 @@
 (use data-structures ports args imlib2 format)
 ;; TODO use scss and sxml-serializer egg?
 
-;; TODO GIF support?
+;; TODO animated GIF support? would probably require wrapping giflib...
 ;; TODO optimizations (like, turning #ffffff into #fff)?
 ;; TODO allow options for splitting out css or pretty-printing or naming
-
-(define (rgba->hex r g b a)
-  (if (= a 255)
-      (format #f "#~2,'0x~2,'0x~2,'0x" r g b)
-      #f))
 
 (define (transform image-path)
   (let* ((image (image-load image-path))
@@ -20,15 +15,15 @@
       (when (< y height)
         (let x-loop ((x 0))
           (when (< x width)
-            (receive (r g b a)
-                (image-pixel/rgba image x y)
-              (let ((hex (rgba->hex r g b a)))
-                (when hex
+            (receive (r g b a) (image-pixel/rgba image x y)
+              ;; is the pixel fully opaque?
+              (when (= a 255)
                   ;; FIXME don't hardcode coordinates
                   ;; FIXME don't hardcode scaling factor
                   ;; FIXME Firefox doesn't permit a final trailing
                   ;; comma, either semicolon or nothing are OK
-                  (display (format "~apx ~apx ~a," x y hex)))))
+                  (display (format #f "~dpx ~dpx #~2,'0x,~2,'0x,~2,'0x"
+                                   x y r g b))))
             (x-loop (add1 x))))
         (y-loop (add1 y))))
     (image-destroy image)))
