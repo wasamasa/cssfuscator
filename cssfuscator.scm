@@ -16,16 +16,15 @@
         #f)))
 
 (define (image->string image width height)
-  (let y-loop ((y 0) (acc '()))
-    (if (< y height)
-        (let x-loop ((x 0) (acc acc))
-          (if (< x width)
-              (let ((hex-code (hex-code-at image x y)))
-                (if hex-code
-                    (x-loop (add1 x) (cons hex-code acc))
-                    (x-loop (add1 x) acc)))
-              (y-loop (add1 y) acc)))
-        (string-intersperse (reverse acc) ","))))
+  (let ((data '()))
+    (do ((y 0 (add1 y)))
+        ((= y height))
+      (do ((x 0 (add1 x)))
+          ((= x width))
+        (let ((hex-code (hex-code-at image x y)))
+          (when hex-code
+            (set! data (cons hex-code data))))))
+    (string-intersperse (reverse data) ",")))
 
 (define (transform image-path)
   (let* ((image (image-load image-path))
