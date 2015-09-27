@@ -67,9 +67,8 @@
 (define (process-image input output unit scale html-title css-id)
   (with-output-to-file output
     (lambda ()
-      ;; FIXME offer option for altering image offset
-      (display (format "<!DOCTYPE html><html><head><title>~a</title><style type=\"text/css\">#~a{width:~a~a;height:~a~a;box-shadow:"
-                       html-title css-id scale unit scale unit))
+      (display (format "<!DOCTYPE html><html><head><title>~a</title><style type=\"text/css\">#~a{width:~a~a;height:~a~a;margin:-~a~a;box-shadow:"
+                       html-title css-id scale unit scale unit scale unit))
       (display (transform-image input unit scale))
       (display (format "}</style></head><body><div id=\"~a\"></div></body></html>"
                        css-id)))))
