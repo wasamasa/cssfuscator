@@ -29,7 +29,7 @@
                              data))))))
     (string-intersperse (reverse data) ",")))
 
-(define (transform image-path unit)
+(define (transform-image image-path unit)
   (let* ((image (image-load image-path))
          (width (image-width image))
          (height (image-height image))
@@ -62,7 +62,7 @@
     (lambda ()
       (display (format #f "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:1~a;height:1~a;box-shadow:"
                        unit unit))
-      (display (transform input unit))
+      (display (transform-image input unit))
       (display "}</style></head><body><div id=\"image\"></div></body></html>"))))
 
 (define (main)
