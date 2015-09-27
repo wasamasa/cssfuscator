@@ -20,11 +20,12 @@
           ((= x width))
         (let ((hex-code (hex-code-at image x y)))
           (when hex-code
-            ;; FIXME introduce an offset
             ;; FIXME don't hardcode coordinates
             ;; FIXME don't hardcode scaling factor
             (set! data (cons (format #f "~d~a ~d~a ~a"
-                                     x unit y unit hex-code)
+                                     (add1 x) unit
+                                     (add1 y) unit
+                                     hex-code)
                              data))))))
     (string-intersperse (reverse data) ",")))
 
