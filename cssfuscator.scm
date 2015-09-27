@@ -10,6 +10,7 @@
       (image-pixel/rgba image x y)
     ;; is the pixel fully opaque?
     (if (= a 255)
+        ;; FIXME introduce an offset
         ;; FIXME don't hardcode coordinates
         ;; FIXME don't hardcode scaling factor
         (format #f "~dpx ~dpx #~2,'0x~2,'0x~2,'0x" x y r g b)
