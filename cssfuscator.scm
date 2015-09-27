@@ -56,10 +56,10 @@
 (define opts
   (list (args:make-option (i input) (required: "FILE") "input file")
         (args:make-option (o output) (required: "FILE") "output file")
-        (args:make-option (u unit) #:optional "unit (default: px)")
+        (args:make-option (u unit) #:optional "unit (default: \"px\")")
         (args:make-option (s scale) #:optional "scaling factor (default: 1)")
-        (args:make-option (html-title) #:optional "HTML title (default: Image)")
-        (args:make-option (css-id) #:optional "CSS ID (default: image)")
+        (args:make-option (html-title) #:optional "HTML title (default: \"Image\")")
+        (args:make-option (css-id) #:optional "CSS ID (default: \"image\")")
         (args:make-option (h help) #:none "Display usage"
                           ;; is the usage invoked from help?
                           (usage (string=? name "help")))))
