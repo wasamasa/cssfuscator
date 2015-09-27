@@ -12,7 +12,7 @@
         (format #f "#~2,'0x~2,'0x~2,'0x" r g b)
         #f)))
 
-(define (image->string image width height unit)
+(define (image->string image width height unit scale)
   (let ((data '()))
     (do ((y 0 (add1 y)))
         ((= y height))
@@ -20,20 +20,18 @@
           ((= x width))
         (let ((hex-code (hex-code-at image x y)))
           (when hex-code
-            ;; FIXME don't hardcode coordinates
-            ;; FIXME don't hardcode scaling factor
-            (set! data (cons (format #f "~d~a ~d~a ~a"
-                                     (add1 x) unit
-                                     (add1 y) unit
+            (set! data (cons (format #f "~a~a ~a~a ~a"
+                                     (add1 (* x scale)) unit
+                                     (add1 (* y scale)) unit
                                      hex-code)
                              data))))))
     (string-intersperse (reverse data) ",")))
 
-(define (transform-image image-path unit)
+(define (transform-image image-path unit scale)
   (let* ((image (image-load image-path))
          (width (image-width image))
          (height (image-height image))
-         (data (image->string image width height unit)))
+         (data (image->string image width height unit scale)))
     (image-destroy image)
     data))
 
@@ -53,16 +51,17 @@
   (list (args:make-option (i input) (required: "FILE") "input file")
         (args:make-option (o output) (required: "FILE") "output file")
         (args:make-option (u unit) #:optional "unit (default: px)")
+        (args:make-option (s scale) #:optional "scaling factor (default: 1)")
         (args:make-option (h help) #:none "Display usage"
                           ;; is the usage invoked from help?
                           (usage (string=? name "help")))))
 
-(define (process-image input output unit)
+(define (process-image input output unit scale)
   (with-output-to-file output
     (lambda ()
-      (display (format #f "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:1~a;height:1~a;box-shadow:"
-                       unit unit))
-      (display (transform-image input unit))
+      (display (format #f "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:~a~a;height:~a~a;box-shadow:"
+                       scale unit scale unit))
+      (display (transform-image input unit scale))
       (display "}</style></head><body><div id=\"image\"></div></body></html>"))))
 
 (define (main)
@@ -70,11 +69,15 @@
       (args:parse (command-line-arguments) opts)
     (let ((input-file (alist-ref 'input options))
           (output-file (alist-ref 'output options))
-          (unit (or (alist-ref 'unit options) "px")))
+          (unit (or (alist-ref 'unit options) "px"))
+          (scale (let ((option (alist-ref 'scale options)))
+                   (if option
+                       (string->number option)
+                       1.0))))
       (unless input-file
         (error-message "No input file specified"))
       (unless output-file
         (error-message "No output file specified"))
-      (process-image input-file output-file unit))))
+      (process-image input-file output-file unit scale))))
 
 (main)
