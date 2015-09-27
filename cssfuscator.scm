@@ -40,17 +40,19 @@
     (lambda () (print message)))
   (exit 1))
 
-;; it's pretty weird how unrecognized options use the procedure from
-;; the help action as these should have different exit codes...
-(define (usage)
-  (print (format "Usage: ~a [options] [files]\n\n~a"
+(define (usage #!optional help?)
+  (print (format #f "Usage: ~a [options]\n\n~a"
                  (car (argv)) (args:usage opts)))
-  (exit 0))
+  (if help?
+      (exit 0)
+      (exit 1)))
 
 (define opts
   (list (args:make-option (i input) (required: "FILE") "input file")
         (args:make-option (o output) (required: "FILE") "output file")
-        (args:make-option (h help) #:none "Display usage" (usage))))
+        (args:make-option (h help) #:none "Display usage"
+                          ;; is the usage invoked from help?
+                          (usage (string=? name "help")))))
 
 (define (main)
   (receive (options operands)
