@@ -2,7 +2,7 @@
 ;; TODO use scss and sxml-serializer egg?
 
 ;; TODO animated GIF support? would probably require wrapping giflib...
-;; TODO optimizations (like, turning #ffffff into #fff)?
+;; TODO optimizations (like, turning #ffffff into #fff or 1.0 into 1)?
 ;; TODO allow options for splitting out css or pretty-printing or naming
 
 (define (hex-code-at image x y)
@@ -59,6 +59,7 @@
 (define (process-image input output unit scale)
   (with-output-to-file output
     (lambda ()
+      ;; FIXME offer option for altering image offset
       (display (format #f "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:~a~a;height:~a~a;box-shadow:"
                        scale unit scale unit))
       (display (transform-image input unit scale))
