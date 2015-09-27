@@ -1,4 +1,8 @@
-(use data-structures ports args imlib2 format)
+(use (only data-structures string-intersperse)
+     (only ports with-output-to-port)
+     (only args args:make-option args:parse args:usage)
+     (only imlib2 image-load image-width image-height image-destroy image-pixel/rgba)
+     (rename format (format cl-format)))
 ;; TODO use scss and sxml-serializer egg?
 
 ;; TODO animated GIF support? would probably require wrapping giflib...
@@ -9,7 +13,7 @@
   (receive (r g b a) (image-pixel/rgba image x y)
     ;; is the pixel fully opaque?
     (if (= a 255)
-        (format #f "#~2,'0x~2,'0x~2,'0x" r g b)
+        (cl-format #f "#~2,'0x~2,'0x~2,'0x" r g b)
         #f)))
 
 (define (image->string image width height unit scale)
@@ -20,7 +24,7 @@
           ((= x width))
         (let ((hex-code (hex-code-at image x y)))
           (when hex-code
-            (set! data (cons (format #f "~a~a ~a~a ~a"
+            (set! data (cons (format "~a~a ~a~a ~a"
                                      (add1 (* x scale)) unit
                                      (add1 (* y scale)) unit
                                      hex-code)
@@ -41,7 +45,7 @@
   (exit 1))
 
 (define (usage #!optional help?)
-  (print (format #f "Usage: ~a [options]\n\n~a"
+  (print (format "Usage: ~a [options]\n\n~a"
                  (car (argv)) (args:usage opts)))
   (if help?
       (exit 0)
@@ -60,7 +64,7 @@
   (with-output-to-file output
     (lambda ()
       ;; FIXME offer option for altering image offset
-      (display (format #f "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:~a~a;height:~a~a;box-shadow:"
+      (display (format "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:~a~a;height:~a~a;box-shadow:"
                        scale unit scale unit))
       (display (transform-image input unit scale))
       (display "}</style></head><body><div id=\"image\"></div></body></html>"))))
