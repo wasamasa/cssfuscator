@@ -57,6 +57,14 @@
                           ;; is the usage invoked from help?
                           (usage (string=? name "help")))))
 
+(define (process-image input output unit)
+  (with-output-to-file output
+    (lambda ()
+      (display (format #f "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:1~a;height:1~a;box-shadow:"
+                       unit unit))
+      (display (transform input unit))
+      (display "}</style></head><body><div id=\"image\"></div></body></html>"))))
+
 (define (main)
   (receive (options operands)
       (args:parse (command-line-arguments) opts)
@@ -67,11 +75,6 @@
         (error-message "No input file specified"))
       (unless output-file
         (error-message "No output file specified"))
-      (with-output-to-file output-file
-        (lambda ()
-          (display (format #f "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:1~a;height:1~a;box-shadow:"
-                           unit unit))
-          (display (transform input-file unit))
-          (display "}</style></head><body><div id=\"image\"></div></body></html>"))))))
+      (process-image input-file output-file unit))))
 
 (main)
