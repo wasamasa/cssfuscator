@@ -6,17 +6,13 @@
 ;; TODO allow options for splitting out css or pretty-printing or naming
 
 (define (hex-code-at image x y)
-  (receive (r g b a)
-      (image-pixel/rgba image x y)
+  (receive (r g b a) (image-pixel/rgba image x y)
     ;; is the pixel fully opaque?
     (if (= a 255)
-        ;; FIXME introduce an offset
-        ;; FIXME don't hardcode coordinates
-        ;; FIXME don't hardcode scaling factor
-        (format #f "~dpx ~dpx #~2,'0x~2,'0x~2,'0x" x y r g b)
+        (format #f "#~2,'0x~2,'0x~2,'0x" r g b)
         #f)))
 
-(define (image->string image width height)
+(define (image->string image width height unit)
   (let ((data '()))
     (do ((y 0 (add1 y)))
         ((= y height))
@@ -24,14 +20,19 @@
           ((= x width))
         (let ((hex-code (hex-code-at image x y)))
           (when hex-code
-            (set! data (cons hex-code data))))))
+            ;; FIXME introduce an offset
+            ;; FIXME don't hardcode coordinates
+            ;; FIXME don't hardcode scaling factor
+            (set! data (cons (format #f "~d~a ~d~a ~a"
+                                     x unit y unit hex-code)
+                             data))))))
     (string-intersperse (reverse data) ",")))
 
-(define (transform image-path)
+(define (transform image-path unit)
   (let* ((image (image-load image-path))
          (width (image-width image))
          (height (image-height image))
-         (data (image->string image width height)))
+         (data (image->string image width height unit)))
     (image-destroy image)
     data))
 
@@ -50,6 +51,7 @@
 (define opts
   (list (args:make-option (i input) (required: "FILE") "input file")
         (args:make-option (o output) (required: "FILE") "output file")
+        (args:make-option (u unit) #:optional "unit (default: px)")
         (args:make-option (h help) #:none "Display usage"
                           ;; is the usage invoked from help?
                           (usage (string=? name "help")))))
@@ -58,16 +60,17 @@
   (receive (options operands)
       (args:parse (command-line-arguments) opts)
     (let ((input-file (alist-ref 'input options))
-          (output-file (alist-ref 'output options)))
+          (output-file (alist-ref 'output options))
+          (unit (or (alist-ref 'unit options) "px")))
       (unless input-file
         (error-message "No input file specified"))
       (unless output-file
         (error-message "No output file specified"))
       (with-output-to-file output-file
         (lambda ()
-          ;; FIXME don't hardcode units
-          (display "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:1px;height:1px;box-shadow:")
-          (display (transform input-file))
+          (display (format #f "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:1~a;height:1~a;box-shadow:"
+                           unit unit))
+          (display (transform input-file unit))
           (display "}</style></head><body><div id=\"image\"></div></body></html>"))))))
 
 (main)
