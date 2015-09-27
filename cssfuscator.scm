@@ -58,18 +58,21 @@
         (args:make-option (o output) (required: "FILE") "output file")
         (args:make-option (u unit) #:optional "unit (default: px)")
         (args:make-option (s scale) #:optional "scaling factor (default: 1)")
+        (args:make-option (html-title) #:optional "HTML title (default: Image)")
+        (args:make-option (css-id) #:optional "CSS ID (default: image)")
         (args:make-option (h help) #:none "Display usage"
                           ;; is the usage invoked from help?
                           (usage (string=? name "help")))))
 
-(define (process-image input output unit scale)
+(define (process-image input output unit scale html-title css-id)
   (with-output-to-file output
     (lambda ()
       ;; FIXME offer option for altering image offset
-      (display (format "<!DOCTYPE html><html><head><title>Image</title><style type=\"text/css\">#image{width:~a~a;height:~a~a;box-shadow:"
-                       scale unit scale unit))
+      (display (format "<!DOCTYPE html><html><head><title>~a</title><style type=\"text/css\">#~a{width:~a~a;height:~a~a;box-shadow:"
+                       html-title css-id scale unit scale unit))
       (display (transform-image input unit scale))
-      (display "}</style></head><body><div id=\"image\"></div></body></html>"))))
+      (display (format "}</style></head><body><div id=\"~a\"></div></body></html>"
+                       css-id)))))
 
 (define (main)
   (receive (options operands)
@@ -80,11 +83,13 @@
           (scale (let ((option (alist-ref 'scale options)))
                    (if option
                        (string->number option)
-                       1.0))))
+                       1.0)))
+          (html-title (or (alist-ref 'html-title options) "Image"))
+          (css-id (or (alist-ref 'css-id options) "image")))
       (unless input-file
         (error-message "No input file specified"))
       (unless output-file
         (error-message "No output file specified"))
-      (process-image input-file output-file unit scale))))
+      (process-image input-file output-file unit scale html-title css-id))))
 
 (main)
