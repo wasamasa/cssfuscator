@@ -16,6 +16,12 @@
         (cl-format #f "#~2,'0x~2,'0x~2,'0x" r g b)
         #f)))
 
+(define (css-spec-at x y unit scale hex-code)
+  (format "~a~a ~a~a ~a"
+          (add1 (* x scale)) unit
+          (add1 (* y scale)) unit
+          hex-code))
+
 (define (image->string image width height unit scale)
   (let ((data '()))
     (do ((y 0 (add1 y)))
@@ -24,11 +30,7 @@
           ((= x width))
         (let ((hex-code (hex-code-at image x y)))
           (when hex-code
-            (set! data (cons (format "~a~a ~a~a ~a"
-                                     (add1 (* x scale)) unit
-                                     (add1 (* y scale)) unit
-                                     hex-code)
-                             data))))))
+            (set! data (cons (css-spec-at x y unit scale hex-code) data))))))
     (string-intersperse (reverse data) ",")))
 
 (define (transform-image image-path unit scale)
