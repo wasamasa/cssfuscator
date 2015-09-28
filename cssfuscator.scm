@@ -82,7 +82,7 @@
         (args:make-option (html-title) #:optional "HTML title (default: \"Image\")")
         (args:make-option (css-id) #:optional "CSS ID (default: \"image\")")
         (args:make-option (O optimize) #:none "enable optimizations")
-        (args:make-option (h help) #:none "Display usage"
+        (args:make-option (h help) #:none "display usage"
                           ;; is the usage invoked from help?
                           (usage (string=? name "help")))))
 
