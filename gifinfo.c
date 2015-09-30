@@ -24,8 +24,32 @@ int main(int argc, char *argv[]) {
     printf("Dimensions: %i x %i px\n", width, height);
     GifWord color_resolution = gif->SColorResolution;
     printf("Color Resolution: %i bits\n", color_resolution);
+    GifWord background_color = gif->SBackGroundColor;
+    printf("Background Color: %i\n", background_color);
     int frame_count = gif->ImageCount;
     printf("Frame Count: %i\n", frame_count);
+
+    ColorMapObject *global_color_map = gif->SColorMap;
+    if (!global_color_map)
+        printf("Global Color Map: absent\n");
+    else {
+        printf("Global Color Map:\n");
+        int global_color_count = global_color_map->ColorCount;
+        printf("  Count: %i\n", global_color_count);
+        int global_color_depth = global_color_map->BitsPerPixel;
+        printf("  Depth: %i\n", global_color_depth);
+        bool global_color_sorted = global_color_map->SortFlag;
+        printf("  Sorted: %s\n", global_color_sorted ? "Yes" : "No");
+        GifColorType *global_colors = global_color_map->Colors;
+        printf("  Colors:\n");
+        for (int i=0; i<global_color_count; ++i) {
+            GifColorType color = global_colors[i];
+            GifByteType r = color.Red;
+            GifByteType g = color.Green;
+            GifByteType b = color.Blue;
+            printf("    Color %i: #%02x%02x%02x\n", i, r, g, b);
+        }
+    }
 
     fprintf(stderr, "Closing file\n");
     if (DGifCloseFile(gif, &gif_err) == GIF_ERROR)
