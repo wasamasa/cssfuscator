@@ -33,7 +33,9 @@ int main(int argc, char *argv[]) {
         printf("  Depth: %i\n", global_color_map->BitsPerPixel);
         printf("  Sorted: %s\n", global_color_map->SortFlag ? "Yes" : "No");
         printf("  Colors:\n");
-        for (int i = 0; i < global_color_map->ColorCount; ++i) {
+
+        int global_color_map_count = global_color_map->ColorCount;
+        for (int i = 0; i < global_color_map_count; ++i) {
             GifColorType color = global_color_map->Colors[i];
             printf("    Color %i: #%02x%02x%02x\n", i,
                    color.Red, color.Green, color.Blue);
