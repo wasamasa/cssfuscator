@@ -19,35 +19,24 @@ int main(int argc, char *argv[]) {
     if (DGifSlurp(gif) == GIF_ERROR)
         errx(1, "DGifSlurp: %s\n", GifErrorString(gif->Error));
 
-    GifWord width = gif->SWidth;
-    GifWord height = gif->SHeight;
-    printf("Dimensions: %i x %i px\n", width, height);
-    GifWord color_resolution = gif->SColorResolution;
-    printf("Color Resolution: %i bits\n", color_resolution);
-    GifWord background_color = gif->SBackGroundColor;
-    printf("Background Color: %i\n", background_color);
-    int frame_count = gif->ImageCount;
-    printf("Frame Count: %i\n", frame_count);
+    printf("Dimensions: %i x %i px\n", gif->SWidth, gif->SHeight);
+    printf("Color Resolution: %i bits\n", gif->SColorResolution);
+    printf("Background Color: %i\n", gif->SBackGroundColor);
+    printf("Frame Count: %i\n", gif->ImageCount);
 
     ColorMapObject *global_color_map = gif->SColorMap;
     if (!global_color_map)
         printf("Global Color Map: absent\n");
     else {
         printf("Global Color Map:\n");
-        int global_color_count = global_color_map->ColorCount;
-        printf("  Count: %i\n", global_color_count);
-        int global_color_depth = global_color_map->BitsPerPixel;
-        printf("  Depth: %i\n", global_color_depth);
-        bool global_color_sorted = global_color_map->SortFlag;
-        printf("  Sorted: %s\n", global_color_sorted ? "Yes" : "No");
-        GifColorType *global_colors = global_color_map->Colors;
+        printf("  Count: %i\n", global_color_map->ColorCount);
+        printf("  Depth: %i\n", global_color_map->BitsPerPixel);
+        printf("  Sorted: %s\n", global_color_map->SortFlag ? "Yes" : "No");
         printf("  Colors:\n");
-        for (int i=0; i<global_color_count; ++i) {
-            GifColorType color = global_colors[i];
-            GifByteType r = color.Red;
-            GifByteType g = color.Green;
-            GifByteType b = color.Blue;
-            printf("    Color %i: #%02x%02x%02x\n", i, r, g, b);
+        for (int i = 0; i < global_color_map->ColorCount; ++i) {
+            GifColorType color = global_color_map->Colors[i];
+            printf("    Color %i: #%02x%02x%02x\n", i,
+                   color.Red, color.Green, color.Blue);
         }
     }
 
