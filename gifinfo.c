@@ -33,7 +33,6 @@ int main(int argc, char *argv[]) {
         int global_color_map_count = global_color_map->ColorCount;
         printf("  Count: %i\n", global_color_map_count);
         printf("  Depth: %i\n", global_color_map->BitsPerPixel);
-        printf("  Sorted: %s\n", global_color_map->SortFlag ? "Yes" : "No");
         printf("  Colors:\n");
 
         for (int i = 0; i < global_color_map_count; ++i) {
@@ -62,7 +61,6 @@ int main(int argc, char *argv[]) {
             int local_color_map_count = local_color_map->ColorCount;
             printf("      Count: %i\n", local_color_map_count);
             printf("      Depth: %i\n", local_color_map->BitsPerPixel);
-            printf("      Sorted: %s\n", local_color_map->SortFlag ? "Yes" : "No");
             printf("      Colors:\n");
 
             for (int i = 0; i < local_color_map_count; ++i) {
