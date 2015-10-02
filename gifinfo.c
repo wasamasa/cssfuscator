@@ -48,8 +48,10 @@ int main(int argc, char *argv[]) {
         printf("    Frame Interlaced: %s\n", frame_desc.Interlace ? "Yes" : "No");
         printf("    Frame Left: %i\n", frame_desc.Left);
         printf("    Frame Top: %i\n", frame_desc.Top);
-        printf("    Frame Width: %i\n", frame_desc.Width);
-        printf("    Frame Height: %i\n", frame_desc.Height);
+        GifWord frame_width = frame_desc.Width;
+        printf("    Frame Width: %i\n", frame_width);
+        GifWord frame_height = frame_desc.Height;
+        printf("    Frame Height: %i\n", frame_height);
         ColorMapObject *local_color_map = frame_desc.ColorMap;
         if (!local_color_map)
             printf("    Local Color Map: absent\n");
@@ -65,6 +67,15 @@ int main(int argc, char *argv[]) {
                 printf("        Color %i: #%02x%02x%02x\n", i,
                        color.Red, color.Green, color.Blue);
             }
+        }
+
+        printf("    Image Data:\n");
+        GifByteType *frame_bytes = frame.RasterBits;
+        for (int i = 0; i < frame_height; ++i) {
+            printf("      ");
+            for (int j = 0; j < frame_width; ++j)
+                printf("%02x", frame_bytes[i*frame_width+j]);
+            printf("\n");
         }
     }
 
