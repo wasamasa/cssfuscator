@@ -9,13 +9,10 @@ int main(int argc, char *argv[]) {
 
     int gif_err = 0;
 
-    fprintf(stderr, "Opening file: %s\n", argv[1]);
-
     GifFileType *gif = DGifOpenFileName(argv[1], &gif_err);
     if (!gif)
         errx(1, "DGifOpenFileName: %s\n", GifErrorString(gif_err));
 
-    fprintf(stderr, "Loading file\n");
     if (DGifSlurp(gif) == GIF_ERROR)
         errx(1, "DGifSlurp: %s\n", GifErrorString(gif->Error));
 
@@ -71,7 +68,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    fprintf(stderr, "Closing file\n");
     if (DGifCloseFile(gif, &gif_err) == GIF_ERROR)
         errx(1, "DGifCloseFile: %s\n", GifErrorString(gif_err));
 
