@@ -77,6 +77,74 @@ int main(int argc, char *argv[]) {
                 printf("%02x", frame_bytes[i*frame_width+j]);
             printf("\n");
         }
+
+        int frame_extension_block_count = frame.ExtensionBlockCount;
+        if (frame_extension_block_count > 0) {
+            printf("    Frame Extension Blocks:\n");
+            for (int i = 0; i < frame_extension_block_count; ++i) {
+                ExtensionBlock extension_block = frame.ExtensionBlocks[i];
+                printf("      Extension Block %i:\n", i);
+                char* function;
+                switch (extension_block.Function) {
+                    case CONTINUE_EXT_FUNC_CODE:
+                        function = "Continuation Block";
+                        break;
+                    case COMMENT_EXT_FUNC_CODE:
+                        function = "Comment Block";
+                        break;
+                    case GRAPHICS_EXT_FUNC_CODE:
+                        function = "Graphics Control Block";
+                        break;
+                    case PLAINTEXT_EXT_FUNC_CODE:
+                        function = "Plain Text Block";
+                        break;
+                    case APPLICATION_EXT_FUNC_CODE:
+                        function = "Application Block";
+                        break;
+                }
+                printf("        Function: %s\n", function);
+
+                printf("        Extension Block Data:");
+                int extension_block_byte_count = extension_block.ByteCount;
+                for (int j = 0; j < extension_block_byte_count; ++j)
+                    printf("%02x", extension_block.Bytes[j]);
+                printf("\n");
+            }
+        }
+    }
+
+    int extension_block_count = gif->ExtensionBlockCount;
+    if (extension_block_count > 0) {
+        printf("  Extension Blocks:\n");
+        for (int i = 0; i< extension_block_count; ++i) {
+            ExtensionBlock extension_block = gif->ExtensionBlocks[i];
+            printf("    Extension Block %i:\n", i);
+            char* function;
+            switch (extension_block.Function) {
+                case CONTINUE_EXT_FUNC_CODE:
+                    function = "Continuation Block";
+                    break;
+                case COMMENT_EXT_FUNC_CODE:
+                    function = "Comment Block";
+                    break;
+                case GRAPHICS_EXT_FUNC_CODE:
+                    function = "Graphics Control Block";
+                    break;
+                case PLAINTEXT_EXT_FUNC_CODE:
+                    function = "Plain Text Block";
+                    break;
+                case APPLICATION_EXT_FUNC_CODE:
+                    function = "Application Block";
+                    break;
+            }
+            printf("        Function: %s\n", function);
+
+            printf("        Extension Block Data:");
+            int extension_block_byte_count = extension_block.ByteCount;
+            for (int j = 0; j < extension_block_byte_count; ++j)
+                printf("%02x", extension_block.Bytes[j]);
+            printf("\n");
+        }
     }
 
     if (DGifCloseFile(gif, &gif_err) == GIF_ERROR)
