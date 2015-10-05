@@ -1,12 +1,10 @@
 (use (only data-structures string-intersperse)
      (only ports with-output-to-port)
-     (only args args:make-option args:parse args:usage)
+     (only args args:make-option args:parse args:usage args:width)
      (only imlib2 image-load image-width image-height image-destroy image-pixel/rgba)
      (rename format (format cl-format)))
-;; TODO use scss and sxml-serializer egg?
 
 ;; TODO animated GIF support? would probably require wrapping giflib...
-;; TODO allow options for splitting out css or pretty-printing or naming
 
 (define (hex-shorten r g b)
   (let ((r* (quotient r 16))
@@ -68,6 +66,7 @@
   (exit 1))
 
 (define (usage #!optional help?)
+  (args:width 30)
   (print (format "Usage: ~a [options]\n\n~a"
                  (car (argv)) (args:usage opts)))
   (if help?
@@ -82,18 +81,31 @@
         (args:make-option (html-title) #:optional "HTML title (default: \"Image\")")
         (args:make-option (css-id) #:optional "CSS ID (default: \"image\")")
         (args:make-option (O optimize) #:none "enable optimizations")
+        (args:make-option (stylesheet-name) #:optional "Stylesheet name (default: \"style.css\")")
+        (args:make-option (stylesheet) (optional: "TYPE") "Stylesheet type (default: embed, options: embed, split, only)")
         (args:make-option (h help) #:none "display usage"
                           ;; is the usage invoked from help?
-                          (usage (string=? name "help")))))
+                          (usage (equal? name "help")))))
 
-(define (process-image input output unit scale html-title css-id optimize?)
-  (with-output-to-file output
-    (lambda ()
-      (display (format "<!DOCTYPE html><html><head><title>~a</title><style type=\"text/css\">#~a{width:~a~a;height:~a~a;margin:-~a~a;box-shadow:"
-                       html-title css-id scale unit scale unit scale unit))
-      (display (transform-image input unit scale optimize?))
-      (display (format "}</style></head><body><div id=\"~a\"></div></body></html>"
-                       css-id)))))
+(define (process-image input output unit scale html-title css-id
+                       optimize? stylesheet-name stylesheet)
+  (let ((css (format "#~a{width:~a~a;height:~a~a;margin:-~a~a;box-shadow:~a}"
+                     css-id scale unit scale unit scale unit
+                     (transform-image input unit scale optimize?))))
+    (with-output-to-file output
+      (lambda ()
+        (cond
+         ((eq? stylesheet 'embed)
+          (display (format "<!DOCTYPE html><html><head><title>~a</title><style type=\"text/css\">~a</style></head><body><div id=\"~a\"></div></body></html>"
+                           html-title css css-id)))
+         ((eq? stylesheet 'split)
+          (display (format "<!DOCTYPE html><html><head><title>~a</title><link href=\"~a\" rel=\"stylesheet\" type=\"text/css\" /></head><body><div id=\"~a\"></div></body></html>"
+                           html-title stylesheet-name css-id)))
+         ((eq? stylesheet 'only)
+          (display css)))))
+    (when (eq? stylesheet 'split)
+      (with-output-to-file stylesheet-name
+        (lambda () (display css))))))
 
 (define (main)
   (receive (options operands)
@@ -107,12 +119,19 @@
                        1.0)))
           (html-title (or (alist-ref 'html-title options) "Image"))
           (css-id (or (alist-ref 'css-id options) "image"))
-          (optimize? (alist-ref 'optimize options)))
+          (optimize? (alist-ref 'optimize options))
+          (stylesheet-name (or (alist-ref 'stylesheet-name options) "style.css"))
+          (stylesheet (let ((stylesheet (alist-ref 'stylesheet options)))
+                        (if stylesheet
+                            (if (member stylesheet '("embed" "split" "only"))
+                                (string->symbol stylesheet)
+                                (error-message "Invalid stylesheet option"))
+                            'embed))))
       (unless input-file
         (error-message "No input file specified"))
       (unless output-file
         (error-message "No output file specified"))
       (process-image input-file output-file unit scale html-title css-id
-                     optimize?))))
+                     optimize? stylesheet-name stylesheet))))
 
 (main)
