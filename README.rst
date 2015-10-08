@@ -5,7 +5,8 @@ About
 -----
 
 ``cssfuscator`` transforms an input image into CSS (and a bit of
-HTML5).
+HTML5).  See `my blog post on it
+<http://emacsninja.com/posts/cssfuscator.html>`_ for more details.
 
 Usage
 -----
