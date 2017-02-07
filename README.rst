@@ -49,6 +49,9 @@ Usage
     name of the CSS file), "only" (generate only a CSS file).  The
     ``--output`` option specifies the respective file names.
 
+``--animate``
+    Attempt converting an animated GIF into a CSS animation.
+
 ``-h, --help``
     Display the abbreviated usage.
 
