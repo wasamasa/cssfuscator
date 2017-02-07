@@ -72,5 +72,5 @@ hosting the CSS in a separate file for caching and serving it in
 Transparency support is very basic.  A fully transparent pixel is
 simply omitted, for anything else the transparency is simply ignored.
 
-No animated GIF support yet.  For a hand-made demonstration of how
-this would look like, see `http://brause.cc/ <http://brause.cc/>`_.
+Animated GIF support is rather basic at the moment and will hopefully
+allow for more customization soon.
