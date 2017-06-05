@@ -1,6 +1,6 @@
 (use (only data-structures string-intersperse)
      (only ports with-output-to-port with-output-to-string)
-     (only args args:make-option args:parse args:usage args:width)
+     (only getopt-long getopt-long usage)
      (only imlib2 image-load image-width image-height image-destroy image-pixel/rgba)
      (only srfi-1 every fold any for-each)
      (rename format (format cl-format))
@@ -60,34 +60,39 @@
     (image-destroy image)
     data))
 
-(define (error-message message)
+(define (error-message message . args)
   (with-output-to-port (current-error-port)
-    (lambda () (print message)))
+    (lambda () (apply printf message args)))
   (exit 1))
 
-(define (usage #!optional help?)
-  (args:width 30)
-  (print (format "Usage: ~a [options]\n\n~a"
-                 (car (argv)) (args:usage opts)))
-  (if help?
-      (exit 0)
-      (exit 1)))
-
-;; TODO: use getopt-long
 (define opts
-  (list (args:make-option (i input) (required: "FILE") "input file")
-        (args:make-option (o output) (required: "FILE") "output file")
-        (args:make-option (u unit) #:optional "unit (default: \"px\")")
-        (args:make-option (s scale) #:optional "scaling factor (default: 1)")
-        (args:make-option (html-title) #:optional "HTML title (default: \"Image\")")
-        (args:make-option (css-id) #:optional "CSS ID (default: \"image\")")
-        (args:make-option (O optimize) #:none "enable optimizations")
-        (args:make-option (stylesheet-name) #:optional "stylesheet name (default: \"style.css\")")
-        (args:make-option (stylesheet) (optional: "TYPE") "stylesheet type (default: embed, options: embed, split, only)")
-        (args:make-option (animate) #:none "enable animation mode")
-        (args:make-option (h help) #:none "display usage"
-                          ;; is the usage invoked from help?
-                          (usage (equal? name "help")))))
+  '((input "input file"
+           (single-char #\i)
+           (value (required "FILE")))
+    (output "output file"
+            (single-char #\o)
+            (value (required "FILE")))
+    (unit "unit (default: \"px\")"
+          (single-char #\u)
+          (value (optional "UNIT")))
+    (scale "scaling factor (default: 1)"
+           (single-char #\s)
+           (value (optional "N")))
+    (html-title "HTML title (default: \"Image\")"
+                (value (optional "TITLE")))
+    (css-id "CSS ID (default: \"image\")"
+            (value (optional "ID")))
+    (optimize "enable optimizations"
+              (single-char #\O)
+              (required #f))
+    (stylesheet-name "stylesheet name (default: \"style.css\")"
+                     (value (optional "NAME")))
+    (stylesheet "stylesheet type (default: embed, options: embed, split, only)"
+                (value (optional "TYPE")))
+    (animate "enable animation mode"
+             (required #f))
+    (help "display usage"
+          (single-char #\h))))
 
 (define (gif-animated? gif)
   (any (lambda (frame) (alist-ref 'loop (frame-metadata frame)))
@@ -97,7 +102,7 @@
   (let ((delays (map (lambda (frame) (alist-ref 'delay (frame-metadata frame)))
                      (gif-frames gif))))
     (when (not (every identity delays))
-      (error-message "Malformed GIF: missing delay(s)"))
+      (error-message "Malformed GIF: missing delay(s)\n"))
     delays))
 
 (define (gif-length gif)
@@ -151,7 +156,7 @@
     (let ((length (/ (gif-length gif) 100))
           (loop? (gif-animated? gif)))
       (when (not loop?)
-        (error-message "Couldn't find animation metadata"))
+        (error-message "Couldn't find animation metadata\n"))
       (let* ((frames (gif-frames gif))
              (loop-count (if (number? loop?) loop? 'infinite))
              (timings (gif-timings gif))
@@ -169,34 +174,46 @@
     (save-css output css html-title css-id stylesheet-name stylesheet)))
 
 (define (main)
-  (receive (options operands)
-      (args:parse (command-line-arguments) opts)
-    (let ((input-file (alist-ref 'input options))
-          (output-file (alist-ref 'output options))
-          (unit (or (alist-ref 'unit options) "px"))
-          (scale (let ((option (alist-ref 'scale options)))
-                   (if option
-                       (string->number option)
-                       1.0)))
-          (html-title (or (alist-ref 'html-title options) "Image"))
-          (css-id (or (alist-ref 'css-id options) "image"))
-          (optimize? (alist-ref 'optimize options))
-          (stylesheet-name (or (alist-ref 'stylesheet-name options) "style.css"))
-          (stylesheet (let ((stylesheet (alist-ref 'stylesheet options)))
-                        (if stylesheet
-                            (if (member stylesheet '("embed" "split" "only"))
-                                (string->symbol stylesheet)
-                                (error-message "Invalid stylesheet option"))
-                            'embed)))
-          (animate? (alist-ref 'animate options)))
-      (unless input-file
-        (error-message "No input file specified"))
-      (unless output-file
-        (error-message "No output file specified"))
-      ((if animate?
-           process-gif
-           process-image)
-       input-file output-file unit scale html-title css-id
-       optimize? stylesheet-name stylesheet))))
+  (let* ((options
+          (condition-case
+           (getopt-long (command-line-arguments) opts)
+           (e (exn)
+              (error-message "Error: ~a: ~a\nUsage: ~a [options]\n\n~a"
+                             ((condition-property-accessor 'exn 'message) e)
+                             ((condition-property-accessor 'exn 'arguments) e)
+                             (car (argv))
+                             (usage opts)))))
+
+         (input-file (alist-ref 'input options))
+         (output-file (alist-ref 'output options))
+         (unit (or (alist-ref 'unit options) "px"))
+         (scale (let ((option (alist-ref 'scale options)))
+                  (if option
+                      (string->number option)
+                      1.0)))
+         (html-title (or (alist-ref 'html-title options) "Image"))
+         (css-id (or (alist-ref 'css-id options) "image"))
+         (optimize? (alist-ref 'optimize options))
+         (stylesheet-name (or (alist-ref 'stylesheet-name options) "style.css"))
+         (stylesheet (let ((stylesheet (alist-ref 'stylesheet options)))
+                       (if stylesheet
+                           (if (member stylesheet '("embed" "split" "only"))
+                               (string->symbol stylesheet)
+                               (error-message "Invalid stylesheet option\n"))
+                           'embed)))
+         (animate? (alist-ref 'animate options))
+         (help? (alist-ref 'help options)))
+    (when help?
+      (display (usage opts))
+      (exit 0))
+    (when (not input-file)
+      (error-message "No input file specified\n"))
+    (when (not output-file)
+      (error-message "No output file specified\n"))
+    ((if animate?
+         process-gif
+         process-image)
+     input-file output-file unit scale html-title css-id
+     optimize? stylesheet-name stylesheet)))
 
 (main)
